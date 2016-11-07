@@ -1,2 +1,2 @@
 # Happer.Extensions
-WebSocket and RPC extensions for Happer framework.
+Happer extensions for WebSocket and RPC.
