@@ -12,13 +12,13 @@ using Happer.StaticContent;
 
 namespace Happer.TestHttpServer
 {
-    public class Bootstrapper
+    public class HybridBootstrapper
     {
-        public Bootstrapper()
+        public HybridBootstrapper()
         {
         }
 
-        public Engine BootWith(IModuleContainer container)
+        public HybridEngine BootWith(IHybridModuleContainer container)
         {
             if (container == null)
                 throw new ArgumentNullException("container");
@@ -27,7 +27,7 @@ namespace Happer.TestHttpServer
             var requestDispatcher = BuildRequestDispatcher(container);
             var webSocketDispatcher = BuildWebSocketDispatcher(container);
 
-            return new Engine(staticContentProvider, requestDispatcher, webSocketDispatcher);
+            return new HybridEngine(staticContentProvider, requestDispatcher, webSocketDispatcher);
         }
 
         private StaticContentProvider BuildStaticContentProvider()
@@ -44,7 +44,7 @@ namespace Happer.TestHttpServer
             return staticContentProvider;
         }
 
-        private RequestDispatcher BuildRequestDispatcher(IModuleContainer container)
+        private RequestDispatcher BuildRequestDispatcher(IHybridModuleContainer container)
         {
             var moduleCatalog = new ModuleCatalog(
                     () => { return container.GetAllModules(); },
@@ -73,7 +73,7 @@ namespace Happer.TestHttpServer
             return requestDispatcher;
         }
 
-        private WebSocketDispatcher BuildWebSocketDispatcher(IModuleContainer container)
+        private WebSocketDispatcher BuildWebSocketDispatcher(IHybridModuleContainer container)
         {
             var moduleCatalog = new WebSocketModuleCatalog(
                     () => { return container.GetAllWebSocketModules(); },
@@ -81,7 +81,7 @@ namespace Happer.TestHttpServer
                 );
 
             var routeResolver = new WebSocketRouteResolver(moduleCatalog);
-            var bufferManager = new GrowingByteBufferManager(100, 64);
+            var bufferManager = new SegmentBufferManager(1024, 8192, 1, true);
 
             return new WebSocketDispatcher(routeResolver, bufferManager);
         }

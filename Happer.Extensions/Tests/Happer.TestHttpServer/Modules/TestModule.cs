@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Threading;
-using System.Threading.Tasks;
 using Happer.Http;
 
 namespace Happer.TestHttpServer
@@ -21,7 +20,7 @@ namespace Happer.TestHttpServer
             {
                 return "text";
             };
-            Get["/test"] = x =>
+            Get["/time"] = x =>
             {
                 return DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fffffff");
             };

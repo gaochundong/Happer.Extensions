@@ -15,13 +15,13 @@ using Happer.StaticContent;
 
 namespace Happer.TestHttpServer
 {
-    public class Engine : IEngine
+    public class HybridEngine : IEngine
     {
         private StaticContentProvider _staticContentProvider;
         private RequestDispatcher _requestDispatcher;
         private WebSocketDispatcher _webSocketDispatcher;
 
-        public Engine(StaticContentProvider staticContentProvider, RequestDispatcher requestDispatcher, WebSocketDispatcher webSocketDispatcher)
+        public HybridEngine(StaticContentProvider staticContentProvider, RequestDispatcher requestDispatcher, WebSocketDispatcher webSocketDispatcher)
         {
             if (staticContentProvider == null)
                 throw new ArgumentNullException("staticContentProvider");
@@ -193,6 +193,22 @@ namespace Happer.TestHttpServer
         private static IDictionary<string, IEnumerable<string>> ConvertToDictionary(NameValueCollection source)
         {
             return source.AllKeys.ToDictionary<string, string, IEnumerable<string>>(key => key, source.GetValues);
+        }
+
+        private static class IgnoredHeaders
+        {
+            private static readonly HashSet<string> _knownHeaders = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "content-length",
+                "content-type",
+                "transfer-encoding",
+                "keep-alive"
+            };
+
+            public static bool IsIgnored(string headerName)
+            {
+                return _knownHeaders.Contains(headerName);
+            }
         }
     }
 }

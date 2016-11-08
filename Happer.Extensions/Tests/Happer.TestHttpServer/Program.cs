@@ -28,7 +28,7 @@ namespace Happer.TestHttpServer
             container.AddModule(rpc);
             container.AddWebSocketModule(new TestWebSocketModule());
 
-            var bootstrapper = new Bootstrapper();
+            var bootstrapper = new HybridBootstrapper();
             var engine = bootstrapper.BootWith(container);
 
             string uri = "http://localhost:3202/";

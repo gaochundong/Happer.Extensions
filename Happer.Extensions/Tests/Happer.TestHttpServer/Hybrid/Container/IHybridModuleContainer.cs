@@ -5,11 +5,8 @@ using Happer.WebSockets;
 
 namespace Happer.TestHttpServer
 {
-    public interface IModuleContainer
+    public interface IHybridModuleContainer : IModuleContainer
     {
-        IEnumerable<Module> GetAllModules();
-        Module GetModule(Type moduleType);
-
         IEnumerable<WebSocketModule> GetAllWebSocketModules();
         WebSocketModule GetWebSocketModule(Type moduleType);
     }

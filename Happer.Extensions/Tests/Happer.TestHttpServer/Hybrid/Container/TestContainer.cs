@@ -5,7 +5,7 @@ using Happer.WebSockets;
 
 namespace Happer.TestHttpServer
 {
-    public class TestContainer : IModuleContainer
+    public class TestContainer : IHybridModuleContainer
     {
         private Dictionary<string, Module> _modules = new Dictionary<string, Module>();
         private Dictionary<string, WebSocketModule> _webSocketModules = new Dictionary<string, WebSocketModule>();
