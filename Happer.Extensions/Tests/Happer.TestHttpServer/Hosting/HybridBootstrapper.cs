@@ -18,7 +18,7 @@ namespace Happer.TestHttpServer
         {
         }
 
-        public HybridEngine BootWith(IHybridModuleContainer container)
+        public IHybridEngine BootWith(IHybridModuleContainer container)
         {
             if (container == null)
                 throw new ArgumentNullException("container");

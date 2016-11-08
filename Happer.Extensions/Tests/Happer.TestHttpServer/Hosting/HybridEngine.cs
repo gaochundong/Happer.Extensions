@@ -15,7 +15,7 @@ using Happer.StaticContent;
 
 namespace Happer.TestHttpServer
 {
-    public class HybridEngine : IEngine
+    public class HybridEngine : IHybridEngine
     {
         private StaticContentProvider _staticContentProvider;
         private RequestDispatcher _requestDispatcher;

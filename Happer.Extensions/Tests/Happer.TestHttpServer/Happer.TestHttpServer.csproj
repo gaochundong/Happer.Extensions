@@ -33,12 +33,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Happer.Hosting, Version=1.0.7.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Happer.1.0.7.0\lib\net46\Happer.Hosting.dll</HintPath>
+    <Reference Include="Happer.Hosting, Version=1.0.9.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Happer.1.0.9.0\lib\net46\Happer.Hosting.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Happer.Http, Version=1.0.7.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Happer.1.0.7.0\lib\net46\Happer.Http.dll</HintPath>
+    <Reference Include="Happer.Http, Version=1.0.9.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Happer.1.0.9.0\lib\net46\Happer.Http.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Logrila.Logging, Version=1.0.1.0, Culture=neutral, processorArchitecture=MSIL">
@@ -64,15 +64,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Hybrid\HybridBootstrapper.cs" />
-    <Compile Include="Hybrid\HybridEngine.cs" />
-    <Compile Include="Hybrid\Container\IHybridModuleContainer.cs" />
+    <Compile Include="Hosting\HybridBootstrapper.cs" />
+    <Compile Include="Hosting\HybridEngine.cs" />
+    <Compile Include="Hosting\Container\IHybridModuleContainer.cs" />
+    <Compile Include="Hosting\IHybridEngine.cs" />
+    <Compile Include="Hosting\Self\HybridSelfHost.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Modules\Rpc\HelloRequest.cs" />
     <Compile Include="Modules\Rpc\HelloResponse.cs" />
     <Compile Include="Modules\Rpc\HelloRpcService.cs" />
-    <Compile Include="Hybrid\Container\TestContainer.cs" />
+    <Compile Include="Hosting\Container\TestContainer.cs" />
     <Compile Include="Model\TestModel.cs" />
     <Compile Include="Modules\TestModule.cs" />
     <Compile Include="Modules\Rpc\TestRpcModule.cs" />
@@ -99,6 +101,7 @@
   <ItemGroup>
     <EmbeddedResource Include="Content\websocket.html" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

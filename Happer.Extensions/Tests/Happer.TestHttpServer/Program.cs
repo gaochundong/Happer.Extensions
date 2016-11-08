@@ -12,6 +12,8 @@ namespace Happer.TestHttpServer
         {
             NLogLogger.Use();
 
+            // ----------------------------------------------------------------------------------
+
             // POST : http://localhost:3202/rpc/hello
             // POST DATA : {"Name":"Dennis" }
             // RETURN RESULT : {"Result":"Hello, Dennis"}
@@ -23,20 +25,28 @@ namespace Happer.TestHttpServer
             var rpc = new TestRpcModule(rpcServiceResolver);
             rpc.RegisterRpcService(rpcServiceResolver.GetRpcService<HelloRequest, HelloResponse>());
 
+            // ----------------------------------------------------------------------------------
+
             var container = new TestContainer();
             container.AddModule(new TestModule());
-            container.AddModule(rpc);
             container.AddWebSocketModule(new TestWebSocketModule());
+            container.AddModule(rpc);
+
+            // ----------------------------------------------------------------------------------
 
             var bootstrapper = new HybridBootstrapper();
             var engine = bootstrapper.BootWith(container);
 
+            // ----------------------------------------------------------------------------------
+
             string uri = "http://localhost:3202/";
-            var host = new SelfHost(engine, new Uri(uri));
+            var host = new HybridSelfHost(engine, new Uri(uri));
             host.Start();
             Console.WriteLine("Server is listening on [{0}].", uri);
 
             //AutoNavigateTo(uri);
+
+            // ----------------------------------------------------------------------------------
 
             Console.ReadKey();
             Console.WriteLine("Stopped. Goodbye!");
