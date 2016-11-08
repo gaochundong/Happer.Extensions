@@ -33,12 +33,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Happer.Hosting, Version=1.0.9.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Happer.1.0.9.0\lib\net46\Happer.Hosting.dll</HintPath>
+    <Reference Include="Happer.Hosting, Version=1.0.11.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Happer.1.0.11.0\lib\net46\Happer.Hosting.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Happer.Http, Version=1.0.9.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Happer.1.0.9.0\lib\net46\Happer.Http.dll</HintPath>
+    <Reference Include="Happer.Http, Version=1.0.11.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Happer.1.0.11.0\lib\net46\Happer.Http.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Logrila.Logging, Version=1.0.1.0, Culture=neutral, processorArchitecture=MSIL">

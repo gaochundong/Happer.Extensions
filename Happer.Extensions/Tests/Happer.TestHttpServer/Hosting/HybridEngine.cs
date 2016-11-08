@@ -35,7 +35,7 @@ namespace Happer.TestHttpServer
             _webSocketDispatcher = webSocketDispatcher;
         }
 
-        public async Task HandleHttp(HttpListenerContext httpContext, Uri baseUri, CancellationToken cancellationToken)
+        public async Task<Context> HandleHttp(HttpListenerContext httpContext, Uri baseUri, CancellationToken cancellationToken)
         {
             if (httpContext == null)
                 throw new ArgumentNullException("httpContext");
@@ -58,6 +58,8 @@ namespace Happer.TestHttpServer
             }
 
             ConvertResponse(context.Response, httpContext.Response);
+
+            return context;
         }
 
         public async Task HandleWebSocket(HttpListenerContext httpContext, HttpListenerWebSocketContext webSocketContext, CancellationToken cancellationToken)

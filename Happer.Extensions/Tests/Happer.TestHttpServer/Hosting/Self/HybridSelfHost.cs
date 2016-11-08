@@ -38,7 +38,8 @@ namespace Happer.TestHttpServer
                     if (baseUri == null)
                         throw new InvalidOperationException(string.Format(
                             "Unable to locate base URI for request: {0}", httpContext.Request.Url));
-                    await _engine.HandleHttp(httpContext, baseUri, cancellationToken).ConfigureAwait(false);
+                    var context = await _engine.HandleHttp(httpContext, baseUri, cancellationToken).ConfigureAwait(false);
+                    context.Dispose();
                 }
             }
             catch
