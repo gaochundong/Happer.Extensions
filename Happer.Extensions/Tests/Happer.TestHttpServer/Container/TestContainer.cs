@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Happer.Http;
-using Happer.Http.WebSockets;
+using Happer.WebSockets;
 
 namespace Happer.TestHttpServer
 {

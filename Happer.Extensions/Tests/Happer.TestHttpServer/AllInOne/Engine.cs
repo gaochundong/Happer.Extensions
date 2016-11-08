@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Happer.Http;
 using Happer.Http.Utilities;
-using Happer.Http.WebSockets;
+using Happer.WebSockets;
 using Happer.StaticContent;
 
 namespace Happer.TestHttpServer

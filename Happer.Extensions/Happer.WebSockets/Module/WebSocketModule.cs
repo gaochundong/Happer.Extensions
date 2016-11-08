@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace Happer.Http.WebSockets
+namespace Happer.WebSockets
 {
     public abstract class WebSocketModule
     {

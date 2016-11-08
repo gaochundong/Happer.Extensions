@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Happer.Buffer;
 using Logrila.Logging;
 
-namespace Happer.Http.WebSockets
+namespace Happer.WebSockets
 {
     public class WebSocketSession
     {

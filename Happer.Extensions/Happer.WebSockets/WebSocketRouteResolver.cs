@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Net.WebSockets;
 
-namespace Happer.Http.WebSockets
+namespace Happer.WebSockets
 {
     public class WebSocketRouteResolver
     {

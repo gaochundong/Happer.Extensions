@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Happer.Http.WebSockets
+namespace Happer.WebSockets
 {
     public class WebSocketBinaryMessage : EventArgs
     {

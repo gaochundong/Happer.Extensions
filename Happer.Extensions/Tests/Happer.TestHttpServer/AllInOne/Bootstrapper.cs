@@ -6,7 +6,7 @@ using Happer.Http.Responses;
 using Happer.Http.Routing;
 using Happer.Http.Routing.Trie;
 using Happer.Http.Serialization;
-using Happer.Http.WebSockets;
+using Happer.WebSockets;
 using Happer.Serialization;
 using Happer.StaticContent;
 

@@ -7,8 +7,8 @@
     <ProjectGuid>{47E06681-38E9-46C0-8AAE-00535845D42D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Happer.Http.WebSockets</RootNamespace>
-    <AssemblyName>Happer.Http.WebSockets</AssemblyName>
+    <RootNamespace>Happer.WebSockets</RootNamespace>
+    <AssemblyName>Happer.WebSockets</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />

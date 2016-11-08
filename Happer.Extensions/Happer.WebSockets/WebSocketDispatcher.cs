@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Happer.Buffer;
 
-namespace Happer.Http.WebSockets
+namespace Happer.WebSockets
 {
     public class WebSocketDispatcher
     {

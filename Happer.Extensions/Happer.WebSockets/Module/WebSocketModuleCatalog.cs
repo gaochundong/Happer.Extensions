@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Happer.Http.WebSockets
+namespace Happer.WebSockets
 {
     public class WebSocketModuleCatalog
     {
