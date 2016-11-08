@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using Happer.Hosting.Self;
 using Happer.Rpc;
 using Logrila.Logging.NLogIntegration;
 
@@ -15,8 +14,8 @@ namespace Happer.TestHttpServer
             // ----------------------------------------------------------------------------------
 
             // POST : http://localhost:3202/rpc/hello
-            // POST DATA : {"Name":"Dennis" }
-            // RETURN RESULT : {"Result":"Hello, Dennis"}
+            // POST RAW DATA : {"Name":"Dennis" }
+            // RETURN RESULT : {"Result":"Hello, Dennis."}
             Func<Type, object> rpcContainer = (t) =>
             {
                 return new HelloRpcService();
