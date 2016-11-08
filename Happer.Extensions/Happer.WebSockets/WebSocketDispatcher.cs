@@ -10,9 +10,9 @@ namespace Happer.WebSockets
     public class WebSocketDispatcher
     {
         private WebSocketRouteResolver _routeResolver;
-        private IBufferManager _bufferManager;
+        private ISegmentBufferManager _bufferManager;
 
-        public WebSocketDispatcher(WebSocketRouteResolver routeResolver, IBufferManager bufferManager)
+        public WebSocketDispatcher(WebSocketRouteResolver routeResolver, ISegmentBufferManager bufferManager)
         {
             if (routeResolver == null)
                 throw new ArgumentNullException("routeResolver");

@@ -14,12 +14,12 @@ namespace Happer.WebSockets
     {
         private ILog _log = Logger.Get<WebSocketSession>();
         private HttpListenerContext _httpContext;
-        private IBufferManager _bufferManager;
+        private ISegmentBufferManager _bufferManager;
         private readonly string _sessionKey;
 
         public WebSocketSession(
             WebSocketModule module, HttpListenerContext httpContext, WebSocketContext webSocketContext,
-            CancellationToken cancellationToken, IBufferManager bufferManager)
+            CancellationToken cancellationToken, ISegmentBufferManager bufferManager)
             : this(module, httpContext, webSocketContext,
                   cancellationToken, bufferManager, Encoding.UTF8)
         {
@@ -27,7 +27,7 @@ namespace Happer.WebSockets
 
         public WebSocketSession(
             WebSocketModule module, HttpListenerContext httpContext, WebSocketContext webSocketContext,
-            CancellationToken cancellationToken, IBufferManager bufferManager, Encoding encoding)
+            CancellationToken cancellationToken, ISegmentBufferManager bufferManager, Encoding encoding)
         {
             if (module == null)
                 throw new ArgumentNullException("module");
@@ -71,8 +71,8 @@ namespace Happer.WebSockets
         public async Task Start()
         {
             var webSocket = this.Context.WebSocket;
-            byte[] receiveBuffer = _bufferManager.BorrowBuffer();
-            byte[] sessionBuffer = _bufferManager.BorrowBuffer();
+            ArraySegment<byte> receiveBuffer = _bufferManager.BorrowBuffer();
+            ArraySegment<byte> sessionBuffer = _bufferManager.BorrowBuffer();
             int sessionBufferCount = 0;
 
             _log.DebugFormat("Session started for [{0}] on [{1}] in module [{2}] with session count [{3}].",
@@ -86,7 +86,7 @@ namespace Happer.WebSockets
                 {
                     this.CancellationToken.ThrowIfCancellationRequested();
 
-                    var receiveResult = await webSocket.ReceiveAsync(new ArraySegment<byte>(receiveBuffer), this.CancellationToken);
+                    var receiveResult = await webSocket.ReceiveAsync(receiveBuffer, this.CancellationToken);
 
                     switch (receiveResult.MessageType)
                     {
@@ -94,16 +94,16 @@ namespace Happer.WebSockets
                             {
                                 if (receiveResult.EndOfMessage && sessionBufferCount == 0)
                                 {
-                                    var message = new WebSocketTextMessage(this, this.Encoding.GetString(receiveBuffer, 0, receiveResult.Count));
+                                    var message = new WebSocketTextMessage(this, this.Encoding.GetString(receiveBuffer.Array, receiveBuffer.Offset, receiveResult.Count));
                                     await this.Module.ReceiveTextMessage(message);
                                 }
                                 else
                                 {
-                                    AppendBuffer(receiveBuffer, receiveResult.Count, ref sessionBuffer, ref sessionBufferCount);
+                                    SegmentBufferDeflector.AppendBuffer(_bufferManager, ref receiveBuffer, receiveResult.Count, ref sessionBuffer, ref sessionBufferCount);
 
                                     if (receiveResult.EndOfMessage)
                                     {
-                                        var message = new WebSocketTextMessage(this, this.Encoding.GetString(sessionBuffer, 0, sessionBufferCount));
+                                        var message = new WebSocketTextMessage(this, this.Encoding.GetString(sessionBuffer.Array, sessionBuffer.Offset, sessionBufferCount));
                                         await this.Module.ReceiveTextMessage(message);
                                         sessionBufferCount = 0;
                                     }
@@ -114,16 +114,16 @@ namespace Happer.WebSockets
                             {
                                 if (receiveResult.EndOfMessage && sessionBufferCount == 0)
                                 {
-                                    var message = new WebSocketBinaryMessage(this, receiveBuffer, 0, receiveResult.Count);
+                                    var message = new WebSocketBinaryMessage(this, receiveBuffer.Array, receiveBuffer.Offset, receiveResult.Count);
                                     await this.Module.ReceiveBinaryMessage(message);
                                 }
                                 else
                                 {
-                                    AppendBuffer(receiveBuffer, receiveResult.Count, ref sessionBuffer, ref sessionBufferCount);
+                                    SegmentBufferDeflector.AppendBuffer(_bufferManager, ref receiveBuffer, receiveResult.Count, ref sessionBuffer, ref sessionBufferCount);
 
                                     if (receiveResult.EndOfMessage)
                                     {
-                                        var message = new WebSocketBinaryMessage(this, sessionBuffer, 0, sessionBufferCount);
+                                        var message = new WebSocketBinaryMessage(this, sessionBuffer.Array, sessionBuffer.Offset, sessionBufferCount);
                                         await this.Module.ReceiveBinaryMessage(message);
                                         sessionBufferCount = 0;
                                     }
@@ -155,28 +155,6 @@ namespace Happer.WebSockets
                 if (webSocket != null)
                     webSocket.Dispose();
             }
-        }
-
-        private void AppendBuffer(byte[] receiveBuffer, int receiveCount, ref byte[] sessionBuffer, ref int sessionBufferCount)
-        {
-            if (sessionBuffer.Length < (sessionBufferCount + receiveCount))
-            {
-                byte[] autoExpandedBuffer = _bufferManager.BorrowBuffer();
-                if (autoExpandedBuffer.Length < (sessionBufferCount + receiveCount) * 2)
-                {
-                    _bufferManager.ReturnBuffer(autoExpandedBuffer);
-                    autoExpandedBuffer = new byte[(sessionBufferCount + receiveCount) * 2];
-                }
-
-                Array.Copy(sessionBuffer, 0, autoExpandedBuffer, 0, sessionBufferCount);
-
-                var discardBuffer = sessionBuffer;
-                sessionBuffer = autoExpandedBuffer;
-                _bufferManager.ReturnBuffer(discardBuffer);
-            }
-
-            Array.Copy(receiveBuffer, 0, sessionBuffer, sessionBufferCount, receiveCount);
-            sessionBufferCount = sessionBufferCount + receiveCount;
         }
 
         public async Task Send(string text)

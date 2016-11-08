@@ -42,12 +42,13 @@
     <Compile Include="..\SolutionVersion.cs">
       <Link>SolutionVersion.cs</Link>
     </Compile>
-    <Compile Include="Deflection\BufferDeflector.cs" />
-    <Compile Include="Validation\BufferValidator.cs" />
-    <Compile Include="BufferManager\FixedByteBufferManager.cs" />
-    <Compile Include="BufferManager\GrowingByteBufferManager.cs" />
-    <Compile Include="BufferManager\IBufferManager.cs" />
+    <Compile Include="BufferValidator.cs" />
+    <Compile Include="ISegmentBufferManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SegmentBufferDeflector.cs" />
+    <Compile Include="SegmentBufferManager.cs" />
+    <Compile Include="UnableToAllocateBufferException.cs" />
+    <Compile Include="UnableToCreateMemoryException .cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
