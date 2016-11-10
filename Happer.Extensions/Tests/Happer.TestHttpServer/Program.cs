@@ -13,7 +13,7 @@ namespace Happer.TestHttpServer
 
             // ----------------------------------------------------------------------------------
 
-            // POST : http://localhost:3202/rpc/hello
+            // POST : http://localhost:22222/rpc/hello
             // POST RAW DATA : {"Name":"Dennis" }
             // RETURN RESULT : {"Result":"Hello, Dennis."}
             Func<Type, object> rpcContainer = (t) =>
@@ -38,7 +38,7 @@ namespace Happer.TestHttpServer
 
             // ----------------------------------------------------------------------------------
 
-            string uri = "http://localhost:3202/";
+            string uri = "http://localhost:22222/";
             var host = new HybridSelfHost(engine, new Uri(uri));
             host.Start();
             Console.WriteLine("Server is listening on [{0}].", uri);

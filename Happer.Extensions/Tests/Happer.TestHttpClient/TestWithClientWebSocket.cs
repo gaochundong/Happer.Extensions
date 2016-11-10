@@ -12,7 +12,7 @@ namespace Happer.TestHttpClient
 
         public static async Task Connect()
         {
-            string uri = "ws://localhost:3202/test";
+            string uri = "ws://localhost:22222/test";
 
             ClientWebSocket webSocket = null;
 
