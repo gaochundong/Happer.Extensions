@@ -52,14 +52,14 @@ namespace Happer.Rpc
             where TRequest : class, new()
             where TResponse : class, new()
         {
-            Post["/" + typeof(TRequest).GetCustomAttributes<RpcMethodAttribute>().First().MethodName, true]
-                = async (ctx, ct) =>
-                    {
-                        var rpcService = rpcServiceResolver.GetRpcService<TRequest, TResponse>();
-                        var rpcRequest = Bind<TRequest>();
-                        var rpcResponse = await rpcService.Execute(rpcRequest, ct);
-                        return this.Response.AsJson(rpcResponse);
-                    };
+            Post("/" + typeof(TRequest).GetCustomAttributes<RpcMethodAttribute>().First().MethodName,
+                async (ctx, ct) =>
+                {
+                    var rpcService = rpcServiceResolver.GetRpcService<TRequest, TResponse>();
+                    var rpcRequest = Bind<TRequest>();
+                    var rpcResponse = await rpcService.Execute(rpcRequest, ct);
+                    return this.Response.AsJson(rpcResponse);
+                });
         }
 
         private TRequest Bind<TRequest>()
