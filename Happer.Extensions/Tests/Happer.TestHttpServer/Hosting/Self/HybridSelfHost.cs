@@ -16,41 +16,39 @@ namespace Happer.TestHttpServer
             _engine = engine;
         }
 
-        protected override async Task Process(HttpListenerContext httpContext)
+        protected override async Task Process(HttpListenerContext listenerContext, CancellationToken cancellationToken)
         {
             try
             {
-                var cancellationToken = new CancellationToken();
-
                 // Each request is processed in its own execution thread.
-                if (httpContext.Request.IsWebSocketRequest)
+                if (listenerContext.Request.IsWebSocketRequest)
                 {
-                    var webSocketContext = await httpContext.AcceptWebSocketAsync(null);
+                    var webSocketContext = await listenerContext.AcceptWebSocketAsync(null);
                     var baseUri = GetBaseUri(webSocketContext.RequestUri);
                     if (baseUri == null)
                         throw new InvalidOperationException(string.Format(
                             "Unable to locate base URI for request: {0}", webSocketContext.RequestUri));
-                    await _engine.HandleWebSocket(httpContext, webSocketContext, cancellationToken).ConfigureAwait(false);
+                    await _engine.HandleWebSocket(listenerContext, webSocketContext, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
-                    var baseUri = GetBaseUri(httpContext.Request.Url);
+                    var baseUri = GetBaseUri(listenerContext.Request.Url);
                     if (baseUri == null)
                         throw new InvalidOperationException(string.Format(
-                            "Unable to locate base URI for request: {0}", httpContext.Request.Url));
-                    var context = await _engine.HandleHttp(httpContext, baseUri, cancellationToken).ConfigureAwait(false);
+                            "Unable to locate base URI for request: {0}", listenerContext.Request.Url));
+                    var context = await _engine.HandleHttp(listenerContext, baseUri, cancellationToken).ConfigureAwait(false);
                     context.Dispose();
                 }
             }
             catch (NotSupportedException)
             {
-                httpContext.Response.StatusCode = (int)HttpStatusCode.NotImplemented;
-                httpContext.Response.Close();
+                listenerContext.Response.StatusCode = (int)HttpStatusCode.NotImplemented;
+                listenerContext.Response.Close();
             }
             catch (Exception)
             {
-                httpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                httpContext.Response.Close();
+                listenerContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                listenerContext.Response.Close();
             }
         }
     }

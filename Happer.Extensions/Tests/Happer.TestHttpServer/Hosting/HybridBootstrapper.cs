@@ -20,17 +20,21 @@ namespace Happer.TestHttpServer
 
         public IHybridEngine BootWith(IHybridModuleContainer container)
         {
+            return BootWith(container, new Pipelines());
+        }
+
+        public IHybridEngine BootWith(IHybridModuleContainer container, IPipelines pipelines)
+        {
             if (container == null)
                 throw new ArgumentNullException("container");
 
-            var staticContentProvider = BuildStaticContentProvider();
             var requestDispatcher = BuildRequestDispatcher(container);
             var webSocketDispatcher = BuildWebSocketDispatcher(container);
 
-            return new HybridEngine(staticContentProvider, requestDispatcher, webSocketDispatcher);
+            return new HybridEngine(requestDispatcher, webSocketDispatcher);
         }
 
-        private StaticContentProvider BuildStaticContentProvider()
+        public StaticContentProvider BuildStaticContentProvider()
         {
             var rootPathProvider = new RootPathProvider();
             var staticContnetConventions = new StaticContentsConventions(new List<Func<Context, string, Response>>
@@ -39,12 +43,12 @@ namespace Happer.TestHttpServer
             });
             var staticContentProvider = new StaticContentProvider(rootPathProvider, staticContnetConventions);
 
-            FileResponse.SafePaths.Add(rootPathProvider.GetRootPath());
+            GenericFileResponse.SafePaths.Add(rootPathProvider.GetRootPath());
 
             return staticContentProvider;
         }
 
-        private RequestDispatcher BuildRequestDispatcher(IHybridModuleContainer container)
+        public RequestDispatcher BuildRequestDispatcher(IHybridModuleContainer container)
         {
             var moduleCatalog = new ModuleCatalog(
                     () => { return container.GetAllModules(); },

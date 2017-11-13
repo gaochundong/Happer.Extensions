@@ -17,49 +17,54 @@ namespace Happer.TestHttpServer
 {
     public class HybridEngine : IHybridEngine
     {
-        private StaticContentProvider _staticContentProvider;
+        private IPipelines _pipelines;
         private RequestDispatcher _requestDispatcher;
         private WebSocketDispatcher _webSocketDispatcher;
 
-        public HybridEngine(StaticContentProvider staticContentProvider, RequestDispatcher requestDispatcher, WebSocketDispatcher webSocketDispatcher)
+        private IStaticContentProvider _staticContentProvider;
+        private bool _allowChunkedTransferEncoding = true;
+
+        public HybridEngine(RequestDispatcher requestDispatcher, WebSocketDispatcher webSocketDispatcher)
+            : this(requestDispatcher, webSocketDispatcher, new Pipelines())
         {
-            if (staticContentProvider == null)
-                throw new ArgumentNullException("staticContentProvider");
+        }
+
+        public HybridEngine(RequestDispatcher requestDispatcher, WebSocketDispatcher webSocketDispatcher, IPipelines pipelines)
+        {
             if (requestDispatcher == null)
                 throw new ArgumentNullException("requestDispatcher");
             if (webSocketDispatcher == null)
                 throw new ArgumentNullException("webSocketDispatcher");
+            if (pipelines == null)
+                throw new ArgumentNullException("pipelines");
 
-            _staticContentProvider = staticContentProvider;
             _requestDispatcher = requestDispatcher;
             _webSocketDispatcher = webSocketDispatcher;
+            _pipelines = pipelines;
         }
 
-        public async Task<Context> HandleHttp(HttpListenerContext httpContext, Uri baseUri, CancellationToken cancellationToken)
+        public HybridEngine ConfigureStaticContentProvider(IStaticContentProvider staticContentProvider)
         {
-            if (httpContext == null)
-                throw new ArgumentNullException("httpContext");
+            if (staticContentProvider == null)
+                throw new ArgumentNullException("staticContentProvider");
 
-            var request = ConvertRequest(baseUri, httpContext.Request);
+            _staticContentProvider = staticContentProvider;
 
-            var context = new Context()
-            {
-                Request = request,
-            };
+            return this;
+        }
 
-            var staticContentResponse = _staticContentProvider.GetContent(context);
-            if (staticContentResponse != null)
-            {
-                context.Response = staticContentResponse;
-            }
-            else
-            {
-                context.Response = await _requestDispatcher.Dispatch(context, cancellationToken).ConfigureAwait(false);
-            }
+        public HybridEngine ConfigureChunkedTransferEncoding(bool chunked = true)
+        {
+            _allowChunkedTransferEncoding = chunked;
 
-            ConvertResponse(context.Response, httpContext.Response);
+            return this;
+        }
 
-            return context;
+        public HybridEngine ConfigureResponseCompressionEnabled()
+        {
+            _pipelines.EnableResponseCompression();
+
+            return this;
         }
 
         public async Task HandleWebSocket(HttpListenerContext httpContext, HttpListenerWebSocketContext webSocketContext, CancellationToken cancellationToken)
@@ -72,11 +77,30 @@ namespace Happer.TestHttpServer
             await _webSocketDispatcher.Dispatch(httpContext, webSocketContext, cancellationToken);
         }
 
+        public async Task<Context> HandleHttp(HttpListenerContext httpContext, Uri baseUri, CancellationToken cancellationToken)
+        {
+            var context = new Context() { Request = ConvertRequest(baseUri, httpContext.Request) };
+
+            if (_staticContentProvider != null)
+            {
+                var staticContentResponse = _staticContentProvider.GetContent(context);
+                if (staticContentResponse != null)
+                {
+                    context.Response = staticContentResponse;
+                    ConvertResponse(context.Response, httpContext.Response);
+                    return context;
+                }
+            }
+
+            var pipelines = new Pipelines(_pipelines);
+            context = await InvokeRequestLifeCycle(context, cancellationToken, pipelines).ConfigureAwait(false);
+            ConvertResponse(context.Response, httpContext.Response);
+            return context;
+        }
+
         private Request ConvertRequest(Uri baseUri, HttpListenerRequest httpRequest)
         {
             var expectedRequestLength = GetExpectedRequestLength(ConvertToDictionary(httpRequest.Headers));
-
-            var relativeUrl = baseUri.MakeAppLocalPath(httpRequest.Url);
 
             var url = new Url
             {
@@ -84,7 +108,7 @@ namespace Happer.TestHttpServer
                 HostName = httpRequest.Url.Host,
                 Port = httpRequest.Url.IsDefaultPort ? null : (int?)httpRequest.Url.Port,
                 BasePath = baseUri.AbsolutePath.TrimEnd('/'),
-                Path = HttpUtility.UrlDecode(relativeUrl),
+                Path = baseUri.MakeAppLocalPath(httpRequest.Url),
                 Query = httpRequest.Url.Query,
             };
 
@@ -106,7 +130,7 @@ namespace Happer.TestHttpServer
                 url,
                 RequestStream.FromStream(httpRequest.InputStream, expectedRequestLength, false),
                 ConvertToDictionary(httpRequest.Headers),
-                (httpRequest.RemoteEndPoint != null) ? httpRequest.RemoteEndPoint.Address.ToString() : null,
+                httpRequest.RemoteEndPoint,
                 protocolVersion,
                 certificate);
         }
@@ -138,7 +162,79 @@ namespace Happer.TestHttpServer
 
             httpResponse.StatusCode = (int)response.StatusCode;
 
-            OutputWithContentLength(response, httpResponse);
+            if (_allowChunkedTransferEncoding)
+            {
+                OutputWithDefaultTransferEncoding(response, httpResponse);
+            }
+            else
+            {
+                OutputWithContentLength(response, httpResponse);
+            }
+        }
+
+        private async Task<Context> InvokeRequestLifeCycle(Context context, CancellationToken cancellationToken, IPipelines pipelines)
+        {
+            try
+            {
+                var response = await InvokePreRequestHook(context, cancellationToken, pipelines.BeforeRequest).ConfigureAwait(false);
+
+                if (response == null)
+                {
+                    response = await _requestDispatcher.Dispatch(context, cancellationToken).ConfigureAwait(false);
+                }
+
+                context.Response = response;
+
+                await InvokePostRequestHook(context, cancellationToken, pipelines.AfterRequest).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                InvokeOnErrorHook(context, pipelines.OnError, ex);
+            }
+
+            return context;
+        }
+
+        private static Task<Response> InvokePreRequestHook(Context context, CancellationToken cancellationToken, BeforePipeline pipeline)
+        {
+            return pipeline == null ? Task.FromResult<Response>(null) : pipeline.Invoke(context, cancellationToken);
+        }
+
+        private static Task InvokePostRequestHook(Context context, CancellationToken cancellationToken, AfterPipeline pipeline)
+        {
+            return pipeline == null ? Task.FromResult<object>(null) : pipeline.Invoke(context, cancellationToken);
+        }
+
+        private static void InvokeOnErrorHook(Context context, ErrorPipeline pipeline, Exception errorException)
+        {
+            try
+            {
+                if (pipeline == null)
+                {
+                    throw new RequestPipelinesException(errorException);
+                }
+
+                var onErrorResult = pipeline.Invoke(context, errorException);
+
+                if (onErrorResult == null)
+                {
+                    throw new RequestPipelinesException(errorException);
+                }
+
+                context.Response = new Response { StatusCode = HttpStatusCode.InternalServerError };
+            }
+            catch (Exception)
+            {
+                context.Response = new Response { StatusCode = HttpStatusCode.InternalServerError };
+            }
+        }
+
+        private static void OutputWithDefaultTransferEncoding(Response response, HttpListenerResponse httpResponse)
+        {
+            using (var output = httpResponse.OutputStream)
+            {
+                response.Contents.Invoke(output);
+            }
         }
 
         private static void OutputWithContentLength(Response response, HttpListenerResponse httpResponse)
